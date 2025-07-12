@@ -1,24 +1,53 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import './homepage.css';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import "./homepage.css";
 
 const Login = ({ navigateHome }) => {
   const [darkMode, setDarkMode] = useState(true);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
 
   useEffect(() => {
-    document.body.className = darkMode ? 'dark' : 'light';
+    document.body.className = darkMode ? "dark" : "light";
   }, [darkMode]);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
+
     if (!username.trim() || !password) {
-      alert('Please enter both username and password.');
+      setError("Please enter both username and password.");
       return;
     }
-    alert('Login attempted!');
+
+    try {
+      setLoading(true);
+      setError("");
+
+      const res = await fetch("http://localhost:8000/api/login/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await res.json();
+
+      if (res.status === 200 && data.access) {
+        localStorage.setItem("access_token", data.access);
+        localStorage.setItem("refresh_token", data.refresh);
+        alert("✅ Login successful! Redirecting...");
+        navigateHome();
+      } else {
+        setError(data.error || "Login failed.");
+      }
+    } catch (err) {
+      setError("Server error or network issue.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -30,24 +59,29 @@ const Login = ({ navigateHome }) => {
             className="theme-toggle"
             onClick={() => setDarkMode(!darkMode)}
           >
-            {darkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
+            {darkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
           </button>
-          <button
-            className="login-btn"
-            onClick={navigateHome}
-          >
+          <button className="login-btn" onClick={navigateHome}>
             🏠 Home
           </button>
         </div>
       </header>
-      <div className="search-bar" style={{ maxWidth: 400, margin: '2rem auto' }}>
-        <form className="search-form" style={{ flexDirection: 'column', gap: '1.5rem' }} onSubmit={handleLogin}>
+
+      <div
+        className="search-bar"
+        style={{ maxWidth: 400, margin: "2rem auto" }}
+      >
+        <form
+          className="search-form"
+          style={{ flexDirection: "column", gap: "1.5rem" }}
+          onSubmit={handleLogin}
+        >
           <input
             type="text"
             className="search-input"
             placeholder="Username"
             value={username}
-            onChange={e => setUsername(e.target.value)}
+            onChange={(e) => setUsername(e.target.value)}
             required
           />
           <input
@@ -55,18 +89,30 @@ const Login = ({ navigateHome }) => {
             className="search-input"
             placeholder="Password"
             value={password}
-            onChange={e => setPassword(e.target.value)}
+            onChange={(e) => setPassword(e.target.value)}
             required
           />
-          <button type="submit" className="search-btn" style={{ width: '100%' }}>
-            Login
+          <button
+            type="submit"
+            className="search-btn"
+            style={{ width: "100%" }}
+            disabled={loading}
+          >
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
-        <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+
+        {error && (
+          <div style={{ color: "red", marginTop: "1rem", textAlign: "center" }}>
+            {error}
+          </div>
+        )}
+
+        <div style={{ textAlign: "center", marginTop: "1rem" }}>
           <button
             className="login-btn"
-            style={{ width: '100%' }}
-            onClick={() => navigate('/register')}
+            style={{ width: "100%" }}
+            onClick={() => navigate("/register")}
           >
             Register Now
           </button>
