@@ -1,0 +1,23 @@
+**/__pycache__/
+*.py[cod]
+*.sqlite3
+*.log
+*.pot
+*.pyc
+*.pyo
+**/migrations/
+!*/migrations/__init__.py
+.env
+.venv/
+venv/
+ENV/
+env.bak/
+
+# Frontend (React)
+frontend/node_modules/
+frontend/build/
+frontend/dist/
+frontend/.env
+frontend/.vite/
+frontend/*.log
+frontend/.cache/
