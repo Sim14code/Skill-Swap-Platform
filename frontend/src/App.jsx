@@ -5,6 +5,7 @@ import Login from './login';
 import Register from './register';
 import UserProfile from './userprofile';
 import PublicProfile from './PublicProfile';
+import SwapRequests from './SwapRequests';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/register" element={<RegisterWithNav />} />
         <Route path="/profile" element={<UserProfileWithNav />} />
         <Route path="/profile/:username" element={<PublicProfile />} />
+        <Route path="/inbox" element={<SwapRequests />} />
       </Routes>
     </Router>
   );

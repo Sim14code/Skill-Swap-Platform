@@ -100,6 +100,13 @@ const Homepage = () => {
           </button>
           <button
             className="login-btn"
+            onClick={() => navigate('/inbox')}
+            style={{ marginLeft: '0.5rem' }}
+          >
+            Inbox
+          </button>
+          <button
+            className="login-btn"
             onClick={() => navigate('/login')}
           >
             Login
