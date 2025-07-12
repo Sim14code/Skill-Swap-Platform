@@ -1,58 +1,32 @@
-from rest_framework import viewsets
-from .models import Skill, Profile, Swap, Feedback
-from .serializers import SkillSerializer, ProfileSerializer, SwapSerializer, FeedbackSerializer
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from django.contrib.auth.models import User
-from rest_framework import status
-from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import authenticate
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import SkillViewSet, ProfileViewSet, SwapViewSet, FeedbackViewSet, register_user, login_user
+from . import admin_views  # Import admin API views
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-@api_view(['POST'])
-def login_user(request):
-    username = request.data.get('username')
-    password = request.data.get('password')
+router = DefaultRouter()
+router.register(r'skills', SkillViewSet)
+router.register(r'profiles', ProfileViewSet)
+router.register(r'swaps', SwapViewSet)
+router.register(r'feedback', FeedbackViewSet)
 
-    user = authenticate(request, username=username, password=password)
-    if user is not None:
-        refresh = RefreshToken.for_user(user)
-        return Response({
-            'refresh': str(refresh),
-            'access': str(refresh.access_token),
-        })
-    else:
-        return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+urlpatterns = [
+    # Auth endpoints
+    path('api/login/', login_user),       
+    path('api/register/', register_user),  
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
+    # ViewSets API
+    path('api/', include(router.urls)),
 
-@api_view(['POST'])
-def register_user(request):
-    username = request.data.get('username')
-    password = request.data.get('password')
+    # Admin APIs
+    path('api/admin/reject-skill/<int:skill_id>/', admin_views.reject_skill),
+    path('api/admin/ban-user/<int:user_id>/', admin_views.ban_user),
+    path('api/admin/swaps/<str:status_filter>/', admin_views.list_swaps_by_status),
+    path('api/admin/notice/', admin_views.post_platform_message),
+    path('api/admin/feedback-report/', admin_views.download_feedback_report),
+    path('api/admin/report/users/', admin_views.download_user_activity_report),
+    path('api/admin/report/swaps/', admin_views.download_swap_stats_report),
 
-    if User.objects.filter(username=username).exists():
-        return Response({'error': 'User already exists'}, status=status.HTTP_400_BAD_REQUEST)
-
-    user = User.objects.create_user(username=username, password=password)
-    user.save()
-    return Response({'message': 'User created successfully'}, status=status.HTTP_201_CREATED)
-
-
-class SkillViewSet(viewsets.ModelViewSet):
-    queryset = Skill.objects.all()
-    serializer_class = SkillSerializer
-
-class ProfileViewSet(viewsets.ModelViewSet):
-    queryset = Profile.objects.all()
-    serializer_class = ProfileSerializer
-    permission_classes = [IsAuthenticated]
-
-class SwapViewSet(viewsets.ModelViewSet):
-    queryset = Swap.objects.all()
-    serializer_class = SwapSerializer
-    permission_classes = [IsAuthenticated]
-
-class FeedbackViewSet(viewsets.ModelViewSet):
-    queryset = Feedback.objects.all()
-    serializer_class = FeedbackSerializer
-    permission_classes = [IsAuthenticated]
+]

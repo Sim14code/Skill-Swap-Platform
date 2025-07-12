@@ -1,7 +1,6 @@
-from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Skill, Profile, Swap, Feedback
-
+from .models import Skill, Profile, Swap, Feedback, PlatformNotice
+from django.contrib.auth.models import User
 
 class SkillSerializer(serializers.ModelSerializer):
     class Meta:
@@ -9,6 +8,8 @@ class SkillSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class ProfileSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField(read_only=True)
+
     class Meta:
         model = Profile
         fields = '__all__'
@@ -23,7 +24,7 @@ class FeedbackSerializer(serializers.ModelSerializer):
         model = Feedback
         fields = '__all__'
 
-class UserSerializer(serializers.ModelSerializer):
+class PlatformNoticeSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
-        fields = ['id', 'username', 'email']
+        model = PlatformNotice
+        fields = '__all__'
