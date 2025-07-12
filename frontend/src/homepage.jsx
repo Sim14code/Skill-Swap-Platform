@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './homepage.css';
 
 const users = [
@@ -34,11 +35,15 @@ const users = [
   },
 ];
 
+const USERS_PER_PAGE = 2;
+
 const Homepage = () => {
   const [darkMode, setDarkMode] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [availabilityFilter, setAvailabilityFilter] = useState('Availability');
   const [currentPage, setCurrentPage] = useState(1);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     document.body.className = darkMode ? 'dark' : 'light';
@@ -49,7 +54,6 @@ const Homepage = () => {
     const fullStars = Math.floor(rating);
     const hasHalfStar = rating % 1 !== 0;
     const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
-    
     return (
       <>
         {'★'.repeat(fullStars)}
@@ -59,55 +63,53 @@ const Homepage = () => {
     );
   };
 
-  // Filter users based on search term
-  const filteredUsers = users.filter(user =>
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.skillsOffered.some(skill => 
-      skill.toLowerCase().includes(searchTerm.toLowerCase())
-    ) ||
-    user.skillsWanted.some(skill => 
-      skill.toLowerCase().includes(searchTerm.toLowerCase())
-    )
+  // Filter users based on search term and availability (availability is not used in dummy data)
+  const filteredUsers = users.filter(user => {
+    const search = searchTerm.toLowerCase();
+    return (
+      user.name.toLowerCase().includes(search) ||
+      user.skillsOffered.some(skill => skill.toLowerCase().includes(search)) ||
+      user.skillsWanted.some(skill => skill.toLowerCase().includes(search))
+    );
+  });
+
+  // Pagination
+  const totalPages = Math.ceil(filteredUsers.length / USERS_PER_PAGE);
+  const paginatedUsers = filteredUsers.slice(
+    (currentPage - 1) * USERS_PER_PAGE,
+    currentPage * USERS_PER_PAGE
   );
 
   const handleSearch = (e) => {
     e.preventDefault();
-    // Search functionality already implemented via filtering
-    console.log('Searching for:', searchTerm);
-  };
-
-  const handleRequest = (userName) => {
-    alert(`Request sent to ${userName}!`);
+    setCurrentPage(1);
   };
 
   return (
     <div className="homepage-container">
-      {/* Header */}
       <header className="header">
         <h1 className="logo">
           🔄 Skill Swap Platform
         </h1>
         <div className="header-actions">
-          <button 
+          <button
             className="theme-toggle"
             onClick={() => setDarkMode(!darkMode)}
           >
             {darkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
           </button>
-          <button 
+          <button
             className="login-btn"
-            // onClick={() => alert('Login functionality would go here!')}
-            onClick={() => window.location.href = '/login'}
+            onClick={() => navigate('/login')}
           >
             Login
           </button>
         </div>
       </header>
 
-      {/* Search Bar */}
       <div className="search-bar">
         <form className="search-form" onSubmit={handleSearch}>
-          <select 
+          <select
             className="availability-select"
             value={availabilityFilter}
             onChange={(e) => setAvailabilityFilter(e.target.value)}
@@ -117,9 +119,9 @@ const Homepage = () => {
             <option value="Busy">Busy</option>
             <option value="Unavailable">Unavailable</option>
           </select>
-          <input 
-            type="text" 
-            placeholder="Search skills, users, or expertise..." 
+          <input
+            type="text"
+            placeholder="Search skills, users, or expertise..."
             className="search-input"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -130,36 +132,37 @@ const Homepage = () => {
         </form>
       </div>
 
-      {/* Results Summary */}
       {searchTerm && (
-        <div style={{ 
-          marginBottom: '1rem', 
-          padding: '0.5rem', 
-          textAlign: 'center', 
-          color: 'var(--text-muted-light)' 
+        <div style={{
+          marginBottom: '1rem',
+          padding: '0.5rem',
+          textAlign: 'center',
+          color: 'var(--text-muted-light)'
         }}>
-          {filteredUsers.length > 0 
+          {filteredUsers.length > 0
             ? `Found ${filteredUsers.length} result(s) for "${searchTerm}"`
             : `No results found for "${searchTerm}"`
           }
         </div>
       )}
 
-      {/* User List */}
       <div className="user-list">
-        {filteredUsers.length > 0 ? (
-          filteredUsers.map((user, index) => (
-            <div key={index} className="user-card">
+        {paginatedUsers.length > 0 ? (
+          paginatedUsers.map((user, index) => (
+            <div
+              key={index}
+              className="user-card"
+              style={{ cursor: 'pointer' }}
+              onClick={() =>
+                navigate(`/profile/${user.name.replace(/\s+/g, '').toLowerCase()}`)
+              }
+            >
               <div className="user-card-content">
-                {/* Profile Picture */}
                 <div className="profile-pic">
                   {user.name.split(' ').map(n => n[0]).join('')}
                 </div>
-                
-                {/* User Info */}
                 <div className="user-info">
                   <h2 className="user-name">{user.name}</h2>
-                  
                   <div className="skills-section">
                     <span className="skills-label">Skills Offered →</span>
                     <div className="skills-pills">
@@ -168,7 +171,6 @@ const Homepage = () => {
                       ))}
                     </div>
                   </div>
-                  
                   <div className="skills-section">
                     <span className="skills-label">Skills Wanted →</span>
                     <div className="skills-pills">
@@ -177,7 +179,6 @@ const Homepage = () => {
                       ))}
                     </div>
                   </div>
-                  
                   <div className="rating">
                     <span>Rating:</span>
                     <span className="rating-value">{user.rating}/5</span>
@@ -186,11 +187,12 @@ const Homepage = () => {
                     </span>
                   </div>
                 </div>
-                
-                {/* Request Button */}
-                <button 
+                <button
                   className="request-btn"
-                  onClick={() => handleRequest(user.name)}
+                  onClick={e => {
+                    e.stopPropagation();
+                    alert(`Request sent to ${user.name}!`);
+                  }}
                 >
                   📧 Request
                 </button>
@@ -209,29 +211,28 @@ const Homepage = () => {
         )}
       </div>
 
-      {/* Pagination */}
-      {filteredUsers.length > 0 && (
+      {filteredUsers.length > 0 && totalPages > 1 && (
         <div className="pagination">
-          <button 
+          <button
             className="pagination-btn"
             onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
             disabled={currentPage === 1}
           >
             ‹
           </button>
-          {[1, 2, 3, 4, 5].map(num => (
-            <button 
-              key={num} 
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(num => (
+            <button
+              key={num}
               className={`pagination-btn ${currentPage === num ? 'active' : ''}`}
               onClick={() => setCurrentPage(num)}
             >
               {num}
             </button>
           ))}
-          <button 
+          <button
             className="pagination-btn"
-            onClick={() => setCurrentPage(Math.min(5, currentPage + 1))}
-            disabled={currentPage === 5}
+            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage === totalPages}
           >
             ›
           </button>

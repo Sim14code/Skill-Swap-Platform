@@ -1,24 +1,39 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import './homepage.css';
 
-const Login = ({ navigateHome }) => {
+const Register = ({ navigateHome }) => {
   const [darkMode, setDarkMode] = useState(true);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const navigate = useNavigate();
+  const [error, setError] = useState('');
 
   useEffect(() => {
     document.body.className = darkMode ? 'dark' : 'light';
   }, [darkMode]);
 
-  const handleLogin = (e) => {
+  // Password validation: min 8 chars, at least 1 uppercase, 1 lowercase, 1 digit, 1 special char
+  const validatePassword = (pwd) => {
+    if (pwd.length < 8) return 'Password must be at least 8 characters.';
+    if (!/[A-Z]/.test(pwd)) return 'Password must contain at least one uppercase letter.';
+    if (!/[a-z]/.test(pwd)) return 'Password must contain at least one lowercase letter.';
+    if (!/[0-9]/.test(pwd)) return 'Password must contain at least one digit.';
+    if (!/[^A-Za-z0-9]/.test(pwd)) return 'Password must contain at least one special character.';
+    return '';
+  };
+
+  const handleRegister = (e) => {
     e.preventDefault();
-    if (!username.trim() || !password) {
-      alert('Please enter both username and password.');
+    const validationMsg = validatePassword(password);
+    if (!username.trim()) {
+      setError('Username is required.');
       return;
     }
-    alert('Login attempted!');
+    if (validationMsg) {
+      setError(validationMsg);
+      return;
+    }
+    setError('');
+    alert('Registration attempted!');
   };
 
   return (
@@ -41,7 +56,7 @@ const Login = ({ navigateHome }) => {
         </div>
       </header>
       <div className="search-bar" style={{ maxWidth: 400, margin: '2rem auto' }}>
-        <form className="search-form" style={{ flexDirection: 'column', gap: '1.5rem' }} onSubmit={handleLogin}>
+        <form className="search-form" style={{ flexDirection: 'column', gap: '1.5rem' }} onSubmit={handleRegister}>
           <input
             type="text"
             className="search-input"
@@ -59,21 +74,17 @@ const Login = ({ navigateHome }) => {
             required
           />
           <button type="submit" className="search-btn" style={{ width: '100%' }}>
-            Login
+            Register
           </button>
         </form>
-        <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-          <button
-            className="login-btn"
-            style={{ width: '100%' }}
-            onClick={() => navigate('/register')}
-          >
-            Register Now
-          </button>
-        </div>
+        {error && (
+          <div style={{ color: 'red', marginTop: '1rem', textAlign: 'center' }}>
+            {error}
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-export default Login;
+export default Register;
