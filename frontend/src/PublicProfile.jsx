@@ -28,10 +28,18 @@ const users = [
   // ...add other users as needed
 ];
 
+// Dummy for your own skills (replace with real user data in production)
+const mySkillsOffered = ['JavaScript', 'Python', 'UI/UX Design', 'SEO'];
+
 const PublicProfile = () => {
   const navigate = useNavigate();
   const { username } = useParams();
   const [darkMode, setDarkMode] = useState(true);
+  const [showPopup, setShowPopup] = useState(false);
+  const [selectedMySkill, setSelectedMySkill] = useState('');
+  const [selectedTheirSkill, setSelectedTheirSkill] = useState('');
+  const [message, setMessage] = useState('');
+  const [submitMsg, setSubmitMsg] = useState('');
 
   useEffect(() => {
     document.body.className = darkMode ? 'dark' : 'light';
@@ -56,6 +64,22 @@ const PublicProfile = () => {
     );
   };
 
+  const handleRequestSubmit = (e) => {
+    e.preventDefault();
+    if (!selectedMySkill || !selectedTheirSkill) {
+      setSubmitMsg('Please select both skills.');
+      return;
+    }
+    setSubmitMsg('Swap request sent!');
+    setTimeout(() => {
+      setShowPopup(false);
+      setSubmitMsg('');
+      setSelectedMySkill('');
+      setSelectedTheirSkill('');
+      setMessage('');
+    }, 1200);
+  };
+
   return (
     <div className="homepage-container">
       {/* Header */}
@@ -71,7 +95,7 @@ const PublicProfile = () => {
           <button
             className="login-btn"
             style={{ textDecoration: 'underline' }}
-            onClick={() => alert('Swap request sent!')}
+            onClick={() => setShowPopup(true)}
           >
             Swap request
           </button>
@@ -112,7 +136,7 @@ const PublicProfile = () => {
             padding: '0.75rem 2rem',
             fontSize: '1.1rem'
           }}
-          onClick={() => alert(`Request sent to ${user.name}!`)}
+          onClick={() => setShowPopup(true)}
         >
           Request
         </button>
@@ -190,6 +214,103 @@ const PublicProfile = () => {
           </div>
         </div>
       </div>
+
+      {/* Popup Modal */}
+      {showPopup && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0, left: 0, right: 0, bottom: 0,
+            background: 'rgba(0,0,0,0.6)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+          onClick={() => setShowPopup(false)}
+        >
+          <div
+            style={{
+              background: darkMode ? '#18181c' : '#fff',
+              border: '2px solid var(--border-light)',
+              borderRadius: 24,
+              padding: '2rem',
+              minWidth: 340,
+              maxWidth: 400,
+              width: '100%',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
+              position: 'relative'
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <h2 style={{ marginTop: 0, marginBottom: 24, color: 'var(--text-main-light)' }}>
+              Send Swap Request
+            </h2>
+            <form onSubmit={handleRequestSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+              <label style={{ marginBottom: 4 }}>Choose one of your offered skills</label>
+              <select
+                className="search-input"
+                value={selectedMySkill}
+                onChange={e => setSelectedMySkill(e.target.value)}
+                required
+              >
+                <option value="">Select skill</option>
+                {mySkillsOffered.map(skill => (
+                  <option key={skill} value={skill}>{skill}</option>
+                ))}
+              </select>
+              <label style={{ marginBottom: 4 }}>Choose one of their wanted skills</label>
+              <select
+                className="search-input"
+                value={selectedTheirSkill}
+                onChange={e => setSelectedTheirSkill(e.target.value)}
+                required
+              >
+                <option value="">Select skill</option>
+                {user.skillsWanted.map(skill => (
+                  <option key={skill} value={skill}>{skill}</option>
+                ))}
+              </select>
+              <label style={{ marginBottom: 4 }}>Message</label>
+              <textarea
+                className="search-input"
+                style={{ minHeight: 80, resize: 'vertical' }}
+                value={message}
+                onChange={e => setMessage(e.target.value)}
+                placeholder="Write a message..."
+              />
+              <button
+                type="submit"
+                className="search-btn"
+                style={{ width: 120, alignSelf: 'center', marginTop: 12 }}
+              >
+                Submit
+              </button>
+              {submitMsg && (
+                <div style={{ color: submitMsg.includes('sent') ? 'green' : 'red', textAlign: 'center', marginTop: 8 }}>
+                  {submitMsg}
+                </div>
+              )}
+            </form>
+            <button
+              onClick={() => setShowPopup(false)}
+              style={{
+                position: 'absolute',
+                top: 12,
+                right: 18,
+                background: 'none',
+                border: 'none',
+                fontSize: 22,
+                color: 'var(--text-muted-light)',
+                cursor: 'pointer'
+              }}
+              title="Close"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
