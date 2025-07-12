@@ -1,17 +1,21 @@
-// import React from 'react';
-// import Homepage from './Homepage'; // Adjust path if needed
-
-// function App() {
-//   return <Homepage />;
-// }
-
-// export default App;
-
-import React from 'react';
-import UserProfile from './UserProfile';
+import React from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Dashboard from "./pages/Dashboard";
+import Navbar from "./components/Navbar";
 
 function App() {
-  return <UserProfile />;
+  return (
+    <BrowserRouter>
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
 export default App;
