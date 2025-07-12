@@ -198,10 +198,10 @@ const Homepage = () => {
                   className="request-btn"
                   onClick={e => {
                     e.stopPropagation();
-                    alert(`Request sent to ${user.name}!`);
+                    navigate(`/profile/${user.name.replace(/\s+/g, '').toLowerCase()}`);
                   }}
                 >
-                  📧 Request
+                  👤 View Profile
                 </button>
               </div>
             </div>
