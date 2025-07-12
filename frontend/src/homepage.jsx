@@ -96,7 +96,8 @@ const Homepage = () => {
           </button>
           <button 
             className="login-btn"
-            onClick={() => alert('Login functionality would go here!')}
+            // onClick={() => alert('Login functionality would go here!')}
+            onClick={() => window.location.href = '/login'}
           >
             Login
           </button>
